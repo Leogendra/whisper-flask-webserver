@@ -5,14 +5,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const progressBar = document.getElementById('progress-bar');
     const etaLabel = document.getElementById('eta');
 
-    // Estimated times for CPU execution
-    const MULTIPLICATOR = 1; // slow CPU
-    const ESTIMATES = {
-        tiny: 15,
-        base: 30,
-        small: 60,
-        medium: 180,
-        large: 600,
+    const DEFAULT_ASSUMED_DURATION = 30;
+    const DEFAULT_FACTOR = 1.0;
+    const SPEED_FACTORS = {
+        tiny: 0.2,
+        base: 0.4,
+        small: 0.6,
+        medium: 1.5,
+        large: 2.5,
     };
 
     function formatSeconds(s) {
@@ -24,7 +24,45 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${Math.round(s)}s`;
     }
 
-    if (!form) return;
+    if (!form) { return; }
+
+    const fileInput = form.querySelector('input[type="file"][name="audio_file"]') || form.querySelector('input[type="file"]');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function (ev) {
+            const f = fileInput.files && fileInput.files[0];
+            if (!f) {
+                form.dataset.audioDuration = '';
+                if (etaLabel) etaLabel.textContent = '';
+                return;
+            }
+
+            const url = URL.createObjectURL(f);
+            const a = new Audio();
+            a.preload = 'metadata';
+            a.src = url;
+            a.addEventListener('loadedmetadata', function () {
+                const dur = a.duration || 0;
+                form.dataset.audioDuration = String(dur);
+
+                const modelSelect = form.querySelector('select[name="model_size"]');
+                const model = (modelSelect && modelSelect.value) || 'small';
+                const factor = SPEED_FACTORS[model] || DEFAULT_FACTOR;
+                const estimate = dur > 0
+                    ? Math.max(1, Math.round(dur * factor))
+                    : Math.max(1, Math.round(DEFAULT_ASSUMED_DURATION * factor));
+                if (etaLabel) etaLabel.textContent = `Duration: ${formatSeconds(dur)} • Est: ${formatSeconds(estimate)}`;
+
+                URL.revokeObjectURL(url);
+            });
+
+            a.addEventListener('error', function () {
+                form.dataset.audioDuration = '';
+                if (etaLabel) etaLabel.textContent = '';
+                URL.revokeObjectURL(url);
+            });
+        });
+    }
 
     form.addEventListener('submit', async function (ev) {
         ev.preventDefault();
@@ -35,7 +73,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const fd = new FormData(form);
         const model = fd.get('model_size') || 'small';
-        const estimate = (ESTIMATES[model] || 60) * MULTIPLICATOR;
+        const audioDuration = parseFloat(form.dataset.audioDuration) || 0;
+        if (audioDuration > 0) fd.set('audio_duration', String(audioDuration));
+        const factor = SPEED_FACTORS[model] || DEFAULT_FACTOR;
+        const estimate = audioDuration > 0
+            ? Math.max(1, audioDuration * factor)
+            : Math.max(1, DEFAULT_ASSUMED_DURATION * factor);
 
         if (progressArea) progressArea.style.display = 'block';
         let start = Date.now();
