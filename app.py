@@ -11,6 +11,7 @@ from flask import (
     session,
     flash,
 )
+import threading
 import requests
 import whisper
 import time
@@ -35,6 +36,7 @@ app.config["OUTPUT_FOLDER"] = RESULTS_DIR
 app.secret_key = SITE_PASSWORD
 
 _MODEL_CACHE = {}
+TRANSCRIBE_LOCK = threading.Lock()
 
 
 
@@ -119,17 +121,24 @@ def index():
 @app.route("/transcribe", methods=["POST"])
 @require_auth
 def transcribe():
-    model_size = request.form.get("model_size", "small")
-    lang = request.form.get("lang", "fr")
-    audio_url = request.form.get("audio_url", "").strip()
-
-    print(f"Received transcription request:\n   model_size={model_size}\n   lang={lang}\n   audio_url={audio_url}")
-
-    audio_file = (
-        request.files.get("audio_file") if "audio_file" in request.files else None
-    )
+    # Ensure only one transcription runs at a time
+    acquired = TRANSCRIBE_LOCK.acquire(blocking=False)
+    if not acquired:
+        time.sleep(5)
+        return render_template("result.html", error="Server busy: another transcription is running. Please try again."), 429
 
     try:
+        model_size = request.form.get("model_size", "small")
+        lang = request.form.get("lang", "fr")
+        audio_url = request.form.get("audio_url", "").strip()
+
+        print(f"Received transcription request:\n   model_size={model_size}\n   lang={lang}\n   audio_url={audio_url}")
+
+        audio_file = (
+            request.files.get("audio_file") if "audio_file" in request.files else None
+        )
+
+        # handle file upload or url
         if audio_url:
             resp = requests.get(audio_url, stream=True, timeout=30)
             resp.raise_for_status()
@@ -170,6 +179,7 @@ def transcribe():
         transcription, out_name = transcribe_audio(
             saved_path, model_size=model_size, lang=lang
         )
+
         return render_template(
             "result.html",
             transcription=transcription,
@@ -179,6 +189,11 @@ def transcribe():
         )
     except Exception as e:
         return render_template("result.html", error=str(e)), 500
+    finally:
+        try:
+            TRANSCRIBE_LOCK.release()
+        except RuntimeError:
+            pass
 
 
 @app.route("/outputs/<path:filename>")
