@@ -55,7 +55,7 @@ def transcribe_audio(audio_path: str, model_size: str = "small", lang: str = "fr
     t0 = time.time()
     result = model.transcribe(audio_path, language=lang)
     t1 = time.time()
-    transcription = result.get("text", "")
+    transcription = result.get("text", "").strip()
 
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
     out_name = f"transcription_{timestamp}.json"
@@ -63,10 +63,9 @@ def transcribe_audio(audio_path: str, model_size: str = "small", lang: str = "fr
 
     metadata = {
         "timestamp": timestamp,
-        "temps_generation": round(t1 - t0, 3),
-        "modele_utilise": model_size,
-        "langage": lang,
-        "taille": model_size,
+        "generation_time_s": round(t1 - t0, 3),
+        "model_size": model_size,
+        "language": lang,
         "text": transcription,
     }
 
@@ -96,9 +95,8 @@ def login():
             session["authed"] = True
             next_url = request.args.get("next") or url_for("index")
             return redirect(next_url)
-        flash("Incorrect password.", "error")
         time.sleep(3)
-        flash("Mot de passe incorrect.", "error")
+        flash("Incorrect password.", "error")
     return render_template("login.html")
 
 
@@ -125,7 +123,7 @@ def transcribe():
     lang = request.form.get("lang", "fr")
     audio_url = request.form.get("audio_url", "").strip()
 
-    print(f"Received transcription request: model_size={model_size}, lang={lang}, audio_url={audio_url}")
+    print(f"Received transcription request:\n   model_size={model_size}\n   lang={lang}\n   audio_url={audio_url}")
 
     audio_file = (
         request.files.get("audio_file") if "audio_file" in request.files else None
