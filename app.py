@@ -1,4 +1,5 @@
 from werkzeug.utils import secure_filename
+import imageio_ffmpeg as iio_ffmpeg
 from dotenv import load_dotenv
 from functools import wraps
 from flask import (
@@ -34,6 +35,15 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_DIR
 app.config["OUTPUT_FOLDER"] = RESULTS_DIR
 app.secret_key = SITE_PASSWORD
+
+try:
+    ffmpeg_exe = iio_ffmpeg.get_ffmpeg_exe()
+    ffmpeg_dir = os.path.dirname(ffmpeg_exe)
+    os.environ["PATH"] = ffmpeg_dir + os.pathsep + os.environ.get("PATH", "")
+    app.config["FFMPEG_BINARY"] = ffmpeg_exe
+except Exception:
+    app.config["FFMPEG_BINARY"] = None
+    print("Warning: Could not set FFMPEG_BINARY. Ensure ffmpeg is installed and in PATH.")
 
 _MODEL_CACHE = {}
 TRANSCRIBE_LOCK = threading.Lock()
