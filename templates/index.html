@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Web Whisper</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+    <script defer src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+</head>
+
+<body>
+    <div class="container">
+                <header>
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div>
+                                <h1>Transcription Audio</h1>
+                                <p class="subtitle">Uploader un fichier ou fournir une URL et choisir les options.</p>
+                            </div>
+                            <div>
+                                {% if session.get('authed') %}
+                                    <a href="/logout" class="button">Déconnexion</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                </header>
+
+        <form id="transcribe-form" action="/transcribe" method="post" enctype="multipart/form-data">
+            <label>Uploader un fichier audio</label>
+            <input type="file" name="audio_file" accept="audio/*">
+
+            <label>Ou fournir une URL directe</label>
+            <input type="text" name="audio_url" placeholder="https://.../file.mp3">
+
+            <div class="row">
+                <div class="col">
+                    <label>Langue</label>
+                    <select name="lang">
+                        <option value="fr">FR</option>
+                        <option value="en">EN</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label>Taille du modèle</label>
+                    <select name="model_size">
+                        <option value="tiny">tiny (rapide)</option>
+                        <option value="base">base</option>
+                        <option value="small" selected>small (équilibre)</option>
+                        <option value="medium">medium</option>
+                        <option value="large">large (lent, haute qualité)</option>
+                    </select>
+                </div>
+            </div>
+
+            <p class="muted">Remarque: le téléchargement du modèle peut prendre du temps la première fois.</p>
+            <button id="submit-btn" type="submit">Transcrire</button>
+        </form>
+    </div>
+</body>
+
+</html>

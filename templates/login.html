@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Web Whisper</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Authentification requise</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, msg in messages %}
+        <p class="error">{{ msg }}</p>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form action="/login" method="post">
+            <label>Mot de passe</label>
+            <input type="password" name="password" autocomplete="current-password">
+            <button type="submit">Se connecter</button>
+        </form>
+    </div>
+</body>
+
+</html>

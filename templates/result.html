@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Web Whisper</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+    <script defer src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+</head>
+
+<body>
+        <div class="container">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <h1>Résultat</h1>
+                    {% if session.get('authed') %}
+                        <a href="/logout" class="button">Déconnexion</a>
+                    {% endif %}
+                </div>
+        {% if error %}
+        <p class="error">Erreur: {{ error }}</p>
+        <p><a href="/">Retour</a></p>
+        {% else %}
+        <p class="meta"><strong>Langue:</strong> {{ lang }} &nbsp; <strong>Modèle:</strong> {{ model_size }}</p>
+        <textarea readonly class="transcript">{{ transcription }}</textarea>
+        {% if out_filename %}
+        <p><a class="button" href="/outputs/{{ out_filename }}">Télécharger le fichier de transcription</a></p>
+        {% endif %}
+        <p><a href="/">Nouvelle transcription</a></p>
+        {% endif %}
+    </div>
+</body>
+
+</html>
