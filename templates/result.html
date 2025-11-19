@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -15,7 +15,7 @@
                 <div style="display:flex;justify-content:space-between;align-items:center">
                     <h1>Result</h1>
                     {% if session.get('authed') %}
-                        <a href="/logout" class="button">Déconnexion</a>
+                        <a href="/logout" class="button">Logout</a>
                     {% endif %}
                 </div>
         {% if error %}

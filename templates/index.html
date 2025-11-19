@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -20,7 +20,7 @@
                             </div>
                             <div>
                                 {% if session.get('authed') %}
-                                    <a href="/logout" class="button">Déconnexion</a>
+                                    <a href="/logout" class="button">Logout</a>
                                 {% endif %}
                             </div>
                         </div>
@@ -37,8 +37,8 @@
                 <div class="col">
                     <label>Language</label>
                     <select name="lang">
-                        <option value="fr">FR</option>
                         <option value="en">EN</option>
+                        <option value="fr">FR</option>
                     </select>
                 </div>
                 <div class="col">
@@ -53,7 +53,12 @@
                 </div>
             </div>
 
-            <p class="muted">Note: model download may take time the first time.</p>
+            <div id="progress-area" style="display:none;margin-top:12px">
+                <div class="progress-bar-outer" style="background:#e6e9ef;border-radius:8px;height:14px;overflow:hidden">
+                    <div id="progress-bar" style="width:0%;height:100%;background:#2563eb;transition:width 0.5s"></div>
+                </div>
+                <div style="margin-top:6px;font-size:0.95rem;color:#374151">Estimated time remaining: <span id="eta">--</span></div>
+            </div>
             <button id="submit-btn" type="submit">Transcribe</button>
         </form>
     </div>
