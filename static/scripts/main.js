@@ -8,11 +8,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const DEFAULT_ASSUMED_DURATION = 30;
     const DEFAULT_FACTOR = 1.0;
     const SPEED_FACTORS = {
-        tiny: 0.2,
-        base: 0.4,
-        small: 0.6,
-        medium: 1.5,
-        large: 2.5,
+        tiny: 0.02,
+        base: 0.05,
+        small: 0.1,
+        medium: 0.2,
+        large: 2.0,
     };
 
     function formatSeconds(s) {
