@@ -67,7 +67,7 @@ def get_model(size: str) -> whisper.Whisper:
 
 def transcribe_audio(audio_path: str, model_size: str = "small", lang: str = "fr") -> tuple[str, str]:
     model = get_model(model_size)
-    t0 = time.time()
+    start_time = time.time()
 
     # Ensure whisper uses the absolute ffmpeg binary provided by imageio-ffmpeg
     try:
@@ -101,18 +101,26 @@ def transcribe_audio(audio_path: str, model_size: str = "small", lang: str = "fr
 
     # load and transcribe
     result = model.transcribe(audio_path, language=lang)
-    t1 = time.time()
     transcription = result.get("text", "").strip()
 
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
     out_name = f"transcription_{timestamp}.json"
     output_path = os.path.join(RESULTS_DIR, out_name)
 
+    file_name = os.path.basename(audio_path)
+    try:
+        audio_arr = whisper.load_audio(audio_path)
+        duration_s = len(audio_arr) / 16000.0
+    except Exception:
+        duration_s = 0
+
     metadata = {
         "timestamp": timestamp,
-        "generation_time_s": round(t1 - t0, 1),
+        "audio_filename": file_name,
+        "audio_duration_s": round(duration_s, 0),
         "model_size": model_size,
         "language": lang,
+        "generation_time_s": round(time.time() - start_time, 1),
         "text": transcription,
     }
 
